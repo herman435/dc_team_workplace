@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Market Report Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px solid #667eea;
+        }
+
+        .upload-section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            margin: 10px 0;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .file-input-label:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .file-list {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            min-height: 50px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            padding: 8px 12px;
+            background: #e9ecef;
+            border-radius: 5px;
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .upload-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .upload-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-section {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            display: none;
+        }
+
+        .result-section.error {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+
+        .download-btn {
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-top: 15px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .download-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 10px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            animation: progress 2s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes progress {
+            0% { width: 0%; }
+            50% { width: 100%; }
+            100% { width: 100%; }
+        }
+
+        .tables-section {
+            margin-top: 40px;
+            display: none;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #667eea;
+        }
+
+        .table-title {
+            color: #333;
+            font-size: 1.6em;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            font-size: 0.95em;
+        }
+
+        .data-table thead {
+            background: #667eea;
+            color: white;
+        }
+
+        .data-table th {
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .data-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .data-table tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .copy-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85em;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .error-message {
+            color: #721c24;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 10px;
+            color: #856404;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .data-table {
+                font-size: 0.85em;
+            }
+
+            .data-table th, .data-table td {
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Market Report Manager</h1>
+        <p class="subtitle">Upload your reports and generate combined summary</p>
+
+        <div class="upload-section">
+            <h2>📋 Market Reports</h2>
+            <p>Upload multiple Excel files</p>
+            <div class="file-input-wrapper">
+                <input type="file" id="marketReports" accept=".xlsx,.xls,.csv" multiple>
+                <label for="marketReports" class="file-input-label">Browse Files</label>
+            </div>
+            <div id="marketFileList" class="file-list">
+                <em>No files selected</em>
+            </div>
+        </div>
+
+        <div class="upload-section">
+            <h2>📄 Previous Report Summary</h2>
+            <p>Upload one Excel file</p>
+            <div class="file-input-wrapper">
+                <input type="file" id="summaryFile" accept=".xlsx,.xls,.csv">
+                <label for="summaryFile" class="file-input-label">Browse File</label>
+            </div>
+            <div id="summaryFileList" class="file-list">
+                <em>No file selected</em>
+            </div>
+        </div>
+
+        <div class="upload-section">
+            <h2>🏪 Sales Category</h2>
+            <p>Tenant & Sales Category mapping</p>
+            <div class="file-input-wrapper">
+                <input type="file" id="salesCategoryFile" accept=".xlsx,.xls,.csv">
+                <label for="salesCategoryFile" class="file-input-label">Browse File</label>
+            </div>
+            <div id="salesCategoryFileList" class="file-list">
+                <em>No file selected</em>
+            </div>
+        </div>
+
+        <button class="upload-btn" id="uploadBtn" disabled>🚀 Finish Upload & Generate Report</button>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; color: #333; font-weight: 500;">Processing your files...</p>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+        </div>
+
+        <div class="result-section" id="resultSection">
+            <h2 id="resultTitle">✅ Report Generated Successfully!</h2>
+            <p id="resultMessage"></p>
+            <div id="errorContainer"></div>
+            
+            <div class="stats" id="statsContainer"></div>
+
+            <a href="#" class="download-btn" id="downloadBtn" style="display: none;">⬇️ Download Excel Report</a>
+            
+            <div class="note">
+                📌 Use the tables below to copy data into PowerPoint for chart creation.
+            </div>
+        </div>
+
+        <div class="tables-section" id="tablesSection">
+            <h2 style="text-align: center; color: #333; margin-bottom: 30px; font-size: 2em;">📊 Summary Tables</h2>
+            <div id="tablesContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000';
+        const TIMEOUT = 300000; // 5 minutes
+
+        const marketReportsInput = document.getElementById('marketReports');
+        const summaryFileInput = document.getElementById('summaryFile');
+        const salesCategoryFileInput = document.getElementById('salesCategoryFile');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const loading = document.getElementById('loading');
+        const resultSection = document.getElementById('resultSection');
+        const tablesSection = document.getElementById('tablesSection');
+
+        marketReportsInput.addEventListener('change', function(e) {
+            displayFileList(e.target.files, 'marketFileList');
+            checkUploadReady();
+        });
+
+        summaryFileInput.addEventListener('change', function(e) {
+            displayFileList(e.target.files, 'summaryFileList');
+            checkUploadReady();
+        });
+
+        salesCategoryFileInput.addEventListener('change', function(e) {
+            displayFileList(e.target.files, 'salesCategoryFileList');
+            checkUploadReady();
+        });
+
+        function displayFileList(files, containerId) {
+            const container = document.getElementById(containerId);
+            
+            if (files.length === 0) {
+                container.innerHTML = '<em>No files selected</em>';
+                return;
+            }
+
+            let html = '';
+            for (let file of files) {
+                const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                html += `
+                    <div class="file-item">
+                        <span>📎 ${file.name}</span>
+                        <span style="color: #666;">${sizeMB} MB</span>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        function checkUploadReady() {
+            const hasMarketReports = marketReportsInput.files.length > 0;
+            const hasSummary = summaryFileInput.files.length > 0;
+            const hasSalesCategory = salesCategoryFileInput.files.length > 0;
+            
+            uploadBtn.disabled = !(hasMarketReports && hasSummary && hasSalesCategory);
+        }
+
+        uploadBtn.addEventListener('click', async function() {
+            const formData = new FormData();
+            
+            for (let file of marketReportsInput.files) {
+                formData.append('market_reports', file);
+            }
+            
+            formData.append('summary', summaryFileInput.files[0]);
+            formData.append('sales_category', salesCategoryFileInput.files[0]);
+
+            loading.style.display = 'block';
+            resultSection.style.display = 'none';
+            tablesSection.style.display = 'none';
+            uploadBtn.disabled = true;
+
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
+
+                const response = await fetch(`/process-reports`, {
+                    method: 'POST',
+                    body: formData,
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                const result = await response.json();
+
+                loading.style.display = 'none';
+                resultSection.style.display = 'block';
+
+                if (response.ok) {
+                    resultSection.classList.remove('error');
+                    document.getElementById('resultTitle').textContent = '✅ Report Generated Successfully!';
+                    document.getElementById('resultMessage').textContent = result.message;
+                    document.getElementById('errorContainer').innerHTML = '';
+
+                    const statsContainer = document.getElementById('statsContainer');
+                    statsContainer.innerHTML = `
+                        <div class="stat-card">
+                            <div class="stat-number">${result.total_records}</div>
+                            <div class="stat-label">Total Records</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${result.new_records}</div>
+                            <div class="stat-label">New Records</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${result.previous_records}</div>
+                            <div class="stat-label">Previous Records</div>
+                        </div>
+                    `;
+
+                    const downloadBtn = document.getElementById('downloadBtn');
+                    downloadBtn.href = `${API_URL}/download/${result.output_filename}`;
+                    downloadBtn.style.display = 'inline-block';
+
+                    if (result.tables && Object.keys(result.tables).length > 0) {
+                        console.log('Tables received:', Object.keys(result.tables));
+                        console.log('Full tables data:', result.tables);
+                        displayTables(result.tables);
+                        tablesSection.style.display = 'block';
+                    } else {
+                        console.log('No tables data received');
+                    }
+                } else {
+                    resultSection.classList.add('error');
+                    document.getElementById('resultTitle').textContent = '❌ Processing Failed';
+                    document.getElementById('resultMessage').textContent = 'Error: ' + (result.error || 'Unknown error');
+                    document.getElementById('errorContainer').innerHTML = `<div class="error-message">${result.error}</div>`;
+                    document.getElementById('statsContainer').innerHTML = '';
+                    document.getElementById('downloadBtn').style.display = 'none';
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                resultSection.style.display = 'block';
+                resultSection.classList.add('error');
+                document.getElementById('resultTitle').textContent = '❌ Error';
+                
+                let errorMsg = error.message;
+                if (error.name === 'AbortError') {
+                    errorMsg = 'Request timeout - processing took too long. Try with fewer/smaller files.';
+                }
+                
+                document.getElementById('resultMessage').textContent = 'Connection Error: ' + errorMsg;
+                document.getElementById('errorContainer').innerHTML = `<div class="error-message">${errorMsg}</div>`;
+                document.getElementById('statsContainer').innerHTML = '';
+                document.getElementById('downloadBtn').style.display = 'none';
+            } finally {
+                uploadBtn.disabled = false;
+            }
+        });
+
+        function displayTables(tables) {
+            const tablesContainer = document.getElementById('tablesContainer');
+            tablesContainer.innerHTML = '';
+
+            console.log('displayTables called with:', tables);
+
+            // Define table display order
+            const tableOrder = [
+                { key: 'coupon_purchased', sections: [null] },
+                { key: 'distributed_coupon', sections: [null] },
+                { key: 'used_market', sections: ['weekly', 'all'] },
+                { key: 'top_merchant', sections: ['weekly', 'all'] },
+                { key: 'merchant_category', sections: ['weekly', 'all'] }
+            ];
+
+            tableOrder.forEach(tableConfig => {
+                const key = tableConfig.key;
+                console.log(`Processing table: ${key}`);
+                
+                if (!tables[key]) {
+                    console.log(`  - Table ${key} not found in data`);
+                    return;
+                }
+
+                const tableData = tables[key];
+                console.log(`  - Table ${key} data:`, tableData);
+
+                // Handle tables that have weekly/all sections
+                if (tableConfig.sections[0] !== null) {
+                    console.log(`  - Table ${key} has sections: ${tableConfig.sections}`);
+                    tableConfig.sections.forEach(section => {
+                        console.log(`    - Processing section: ${section}`);
+                        
+                        if (!tableData[section]) {
+                            console.log(`    - Section ${section} not found`);
+                            return;
+                        }
+                        
+                        const data = tableData[section];
+                        console.log(`    - Section ${section} data:`, data);
+                        
+                        if (!data || !data.html) {
+                            console.log(`    - Section ${section} has no HTML`);
+                            return;
+                        }
+
+                        const tableDiv = document.createElement('div');
+                        tableDiv.className = 'table-container';
+                        
+                        const tableId = `table-${key}-${section}`;
+                        
+                        tableDiv.innerHTML = `
+                            <h3 class="table-title">${data.title}</h3>
+                            <div style="overflow-x: auto;">
+                                ${data.html}
+                            </div>
+                            <button class="copy-btn" onclick="copyTableData('${tableId}')">📋 Copy Table Data</button>
+                        `;
+                        
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = data.html;
+                        const table = tempDiv.querySelector('table');
+                        if (table) {
+                            table.id = tableId;
+                            tableDiv.querySelector('div').innerHTML = table.outerHTML;
+                        }
+                        
+                        tablesContainer.appendChild(tableDiv);
+                        console.log(`    - ✓ Added table ${tableId}`);
+                    });
+                } else {
+                    // Handle tables without sections (coupon_purchased, distributed_coupon)
+                    if (!tableData || !tableData.html) {
+                        console.log(`  - Table ${key} has no HTML`);
+                        return;
+                    }
+
+                    const tableDiv = document.createElement('div');
+                    tableDiv.className = 'table-container';
+                    
+                    const tableId = `table-${key}`;
+                    
+                    tableDiv.innerHTML = `
+                        <h3 class="table-title">${tableData.title}</h3>
+                        <div style="overflow-x: auto;">
+                            ${tableData.html}
+                        </div>
+                        <button class="copy-btn" onclick="copyTableData('${tableId}')">📋 Copy Table Data</button>
+                    `;
+                    
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = tableData.html;
+                    const table = tempDiv.querySelector('table');
+                    if (table) {
+                        table.id = tableId;
+                        tableDiv.querySelector('div').innerHTML = table.outerHTML;
+                    }
+                    
+                    tablesContainer.appendChild(tableDiv);
+                    console.log(`  - ✓ Added table ${tableId}`);
+                }
+            });
+            
+            console.log('displayTables completed');
+        }
+
+        window.copyTableData = function(tableId) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+
+            let text = '';
+            const rows = table.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('th, td');
+                const rowData = Array.from(cells).map(cell => cell.textContent.trim()).join('\t');
+                text += rowData + '\n';
+            });
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ Table data copied to clipboard! You can now paste it into Excel or PowerPoint.');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('✅ Table data copied to clipboard!');
+            });
+        };
+    </script>
+</body>
+</html>
